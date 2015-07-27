@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Created by ApplusForm.com on 2015.07.27
+
+	Permission is granted to copy, distribute, modify under the terms of ApplusForm License.
+
+	Copyright (C) 2015 ApplusForm.com. All rights reserved.
+ -->
+<MOML version="1.1.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.applusform.com/xsd/moml_ui_1.1.8.xsd">
+	<THEMES>
+		<THEME id="text" fontSize="30" textColor="#6186a7"/>
+		<THEME element="LABEL" parent="text"/>
+		<THEME element="SPINNER" parent="text"/>
+		<THEME element="EDIT" parent="text"/>
+		<THEME element="BUTTON" parent="text" img="#4d91be" pressedImg="#7ebbe4" padding="30,20,30,20" textColor="white"/>
+		<THEME id="zipNo" parent="text"  textAlign="center"/>
+		<THEME id="address" parent="text" multiLine="true" minFontSize="15" fontSize="25" ellipsis="none" textAlign="vCenter" />
+		<THEME id="styleButton" parent="text" shape="roundRect(10)" img="#4d91be" pressedImg="#7ebbe4" padding="30,20,30,20" textColor="white" margin="5"/>
+	</THEMES>
+	
+	<UILAYOUT portrait="720,1230" landscape="720,1230">
+		<WINDOW layout="0,0,720,1230" img="white"  align="linear:vertical">
+			<BUTTON  layout="720,100" text="새우편번호 검색" img="#7abcea" fontSize="40" textAlign="bottom|center" padding="15" textColor="white" enabled="false"/>
+			<WINDOW padding="20">
+				<LABEL text="도로명이나 지번주소의 일부를 입력하세요:" />
+				<WINDOW align="linear:subCenter">
+					<WINDOW layout="530,80" padding="2" img="#d9efff" >
+						<EDIT  id="srchwrd" layout="526,76" placeholder="예) '세종로 17'  또는 '성수동2가 300'" img="#ffffff" border="#00000000" padding="10,0,0,0" textAlign="vCenter"/>
+					</WINDOW>
+					<STYLEBUTTON themeId="styleButton" layout="150,80" text="검색" onClick="function.search(1)"/>
+				</WINDOW>
+
+				<WINDOW layout="680,100" align="linear" >
+					<LABEL id="zipNo" themeId="zipNo"/>
+					<WINDOW align="linear:vertical">
+						<LABEL id="rnAdres" themeId="address"/>
+						<LABEL id="lnmAdres" themeId="address"/>
+					</WINDOW>
+				</WINDOW>
+				
+				<LIST2 id="zipCodeList" layout="680,650" dataList="//newAddressListAreaCdSearchAll" img="#d9efff" divider="#87c8f2">
+					<LISTLAYOUT>
+						<BUTTON layout="0,0,680,100" onClick="function.selectZipCode(zipNo.text, rnAdres.text, lnmAdres.text)" img="transparent" pressedImg="#b4e1ff">
+							<LABEL id="zipNo" themeId="zipNo" layout="0,0,150,100" text="{xpath.evaluate('zipNo')}"/>
+							<LABEL id="rnAdres" themeId="address" layout="150,10,530,40" text="{xpath.evaluate('rnAdres')}"/>
+							<LABEL id="lnmAdres" themeId="address" layout="150,50,530,40" text="{xpath.evaluate('lnmAdres')}"/>
+						</BUTTON>
+					</LISTLAYOUT>
+				</LIST2>
+				<WINDOW layout="680,100" align="linear:hCenter" >
+					<STYLEBUTTON themeId="styleButton" id="prev" layout="120,80" text="이전" onClick="function.search(--userVariable.currentPage)"/>
+					<LABEL id="page" layout="120,80" textFormat="number" textAlign="right|center"/>
+					<LABEL layout="auto,80" textAlign="center" text=" / "/>
+					<LABEL id="total" layout="120,80" textAlign="left|center" />
+					<STYLEBUTTON themeId="styleButton" id="next" layout="120,80" text="다음" onClick="function.search(++userVariable.currentPage)"/>
+				</WINDOW>
+				<WINDOW align="linear">
+					<LABEL id="status" layout="480,auto" fontSize="20"/>
+					<LABEL layout="200,auto" textAlign="right" text="자료제공 : 우정사업본부" textColor="hotpink" fontSize="20"/>
+				</WINDOW>
+			</WINDOW>
+		</WINDOW>
+	</UILAYOUT>
+
+	<!-- https://www.data.go.kr 에서 오픈API - 새우편번호 지번주소 조회 서비스의 [SERVICE KEY]를 발급 받아야 합니다. -->
+	<CMD cmd="userVariable.serviceKey = 'XAQRkAc4BBj5RWTWfdEX5Oc5ry0o4j74tmxD5R4HhJoegNLrNTlRZl6%2BCW%2BX%2BC28DAwBYq73UvcNcdB6n591bg%3D%3D'" />
+	
+	<FUNCTION id="search(page)">
+		<RETURN condition="page lt 1 or (page ge 2 and page gt total.text)"/>
+		<CMD cmd="status.text = '검색중...'" />
+		<CMD cmd="zipCodeList.dataSource = ''"/>
+		<CMD cmd="userVariable.currentPage = page" />
+		<CMD cmd="url = 'http://openapi.epost.go.kr/postal/retrieveNewAdressAreaCdSearchAllService/retrieveNewAdressAreaCdSearchAllService/getNewAddressListAreaCdSearchAll?'"/>
+		<CMD cmd="url = url + 'ServiceKey=' + userVariable.serviceKey"/>
+		<CMD cmd="url = url + '&amp;srchwrd=' + string.encode(srchwrd.text, 'percent')"/>
+		<CMD cmd="url= url + '&amp;countPerPage=50'"/>
+		<CMD cmd="url= url + '&amp;currentPage=' + page"/>
+		<CMD cmd="xml = file.read(url)" />
+		<CMD cmd="totalCount = math.num(xpath.evaluateEx(xml, '//totalCount'))" />
+		<CMD cmd="status.text =  totalCount + ' 개가 검색되었습니다.'" />
+		<CMD cmd="page.text = xpath.evaluateEx(xml, '//currentPage')" />
+		<CMD cmd="total.text = xpath.evaluateEx(xml, '//totalPage')" />
+		<CMD cmd="zipCodeList.dataSource = xml" />
+	</FUNCTION>
+	
+	<FUNCTION id="selectZipCode(zipNo, rnAdres, lnmAdres)">
+		<CMD cmd="zipNo.text = zipNo" />
+		<CMD cmd="rnAdres.text = rnAdres" />
+		<CMD cmd="lnmAdres.text = lnmAdres" />
+	</FUNCTION>
+</MOML>
