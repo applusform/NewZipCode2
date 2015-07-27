@@ -30,12 +30,10 @@
 					<STYLEBUTTON themeId="styleButton" layout="150,80" text="검색" onClick="function.search(1)"/>
 				</WINDOW>
 
-				<WINDOW layout="680,100" align="linear" >
-					<LABEL id="zipNo" themeId="zipNo"/>
-					<WINDOW align="linear:vertical">
-						<LABEL id="rnAdres" themeId="address"/>
-						<LABEL id="lnmAdres" themeId="address"/>
-					</WINDOW>
+				<WINDOW layout="680,100" align="relative" >
+					<LABEL id="zipNo" themeId="zipNo" layout="0,0,150,100" />
+					<LABEL id="rnAdres" themeId="address" layout="150,10,530,40"/>
+					<LABEL id="lnmAdres" themeId="address" layout="150,50,530,40"/>
 				</WINDOW>
 				
 				<LIST2 id="zipCodeList" layout="680,650" dataList="//newAddressListAreaCdSearchAll" img="#d9efff" divider="#87c8f2">
